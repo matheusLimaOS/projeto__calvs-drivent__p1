@@ -2,6 +2,8 @@ import { AuthenticatedRequest } from "@/middlewares";
 import enrollmentsService from "@/services/enrollments-service";
 import { Response } from "express";
 import httpStatus from "http-status";
+import { AxiosResponse } from "axios";
+import { CEPAddress, RequestError } from "@/protocols";
 
 export async function getEnrollmentByUser(req: AuthenticatedRequest, res: Response) {
   const { userId } = req;
@@ -17,10 +19,14 @@ export async function getEnrollmentByUser(req: AuthenticatedRequest, res: Respon
 
 export async function postCreateOrUpdateEnrollment(req: AuthenticatedRequest, res: Response) {
   try {
-    await enrollmentsService.createOrUpdateEnrollmentWithAddress({
+    const update: boolean = await enrollmentsService.createOrUpdateEnrollmentWithAddress({
       ...req.body,
       userId: req.userId,
     });
+
+    if( !update) {
+      return res.sendStatus(httpStatus.BAD_REQUEST);
+    }
 
     return res.sendStatus(httpStatus.OK);
   } catch (error) {
@@ -29,15 +35,28 @@ export async function postCreateOrUpdateEnrollment(req: AuthenticatedRequest, re
 }
 
 export async function getAddressFromCEP(req: AuthenticatedRequest, res: Response) {
-  console.log('b');
   const { cep } = req.query as Record<string, string>;
 
   try {
-    const address = await enrollmentsService.getAddressFromCEP(cep);
-    res.status(httpStatus.OK).send(address);
+    const address = await enrollmentsService.getAddressFromCEP(cep) as AxiosResponse<any, any> | RequestError;
+    const resposta: CEPAddress = address.data;
+    if(!resposta.uf) {
+      return res.sendStatus(httpStatus.NOT_FOUND);
+    }
+    
+    resposta.cidade = address.data.localidade;
+
+    delete resposta.ibge;
+    delete resposta.gia;
+    delete resposta.ddd;
+    delete resposta.siafi;
+    delete resposta.cep;
+    delete resposta.localidade;
+
+    res.status(httpStatus.OK).send(resposta);
   } catch (error) {
     if (error.name === "NotFoundError") {
-      return res.send(httpStatus.NO_CONTENT);
+      return res.sendStatus(httpStatus.NO_CONTENT);
     }
   }
 }

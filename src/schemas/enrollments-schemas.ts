@@ -4,7 +4,11 @@ import Joi from "joi";
 
 const cpfValidationSchema = Joi.string().length(11).custom(joiCpfValidation).required();
 
-export const cepValidationSchema = Joi.string().length(9).custom(JoiCepValidation).required();
+const cepValidationSchema = Joi.string().length(9).custom(JoiCepValidation).required();
+
+export const objectCepValidationSchema = Joi.object({
+  cep: Joi.string().custom(JoiCepValidation)
+});
 
 const mobilePhoneValidationSchema = Joi.string().min(14).max(15).custom(joiMobilePhoneValidation).required();
 
@@ -39,6 +43,8 @@ function joiCpfValidation(value: string, helpers: Joi.CustomHelpers<string>) {
 
 function JoiCepValidation(value: string, helpers: Joi.CustomHelpers<string>) {
   if (!value) return value;
+  console.log(value)
+  console.log(isValidCEP(value));
 
   if (!isValidCEP(value)) {
     return helpers.error("any.invalid");

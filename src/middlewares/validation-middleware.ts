@@ -1,7 +1,7 @@
 import { invalidDataError } from "@/errors";
 import { NextFunction, Request, Response } from "express";
 import httpStatus from "http-status";
-import { ObjectSchema, StringSchema } from "joi";
+import { ObjectSchema } from "joi";
 
 export function validateBody<T>(schema: ObjectSchema<T>): ValidationMiddleware {
   return validate(schema, "body");
@@ -11,12 +11,11 @@ export function validateParams<T>(schema: ObjectSchema<T>): ValidationMiddleware
   return validate(schema, "params");
 }
 
-export function validateQuery<T>(schema: ObjectSchema<T> | StringSchema): ValidationMiddleware {
+export function validateQuery<T>(schema: ObjectSchema<T>): ValidationMiddleware {
   return validate(schema, "query");
 }
 
-function validate(schema: (ObjectSchema | StringSchema), type: "body" | "params" | "query") {
-  console.log('a');
+function validate(schema: ObjectSchema, type: "body" | "params" | "query") {
   return (req: Request, res: Response, next: NextFunction) => {
     const { error } = schema.validate(req[type], {
       abortEarly: false,

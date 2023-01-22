@@ -3,12 +3,20 @@ export type ApplicationError = {
   message: string;
 };
 
-export type ViaCEPAddress = {
+export type ViaCEPAddress = Omit<CEPAddress, "cep" | "ibge" | "gia" | "ddd" | "siafi">;
+
+export type CEPAddress = {
+  cidade?: string,
   logradouro: string,
   complemento: string,
   bairro: string,
   localidade: string,
   uf: string,
+  cep: string,
+  ibge: string,
+  gia: string,
+  ddd: string,
+  siafi: string,
 };
 
 export type RequestError = {
