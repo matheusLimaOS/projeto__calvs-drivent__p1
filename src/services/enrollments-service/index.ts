@@ -4,14 +4,12 @@ import addressRepository, { CreateAddressParams } from "@/repositories/address-r
 import enrollmentRepository, { CreateEnrollmentParams } from "@/repositories/enrollment-repository";
 import { exclude } from "@/utils/prisma-utils";
 import { Address, Enrollment } from "@prisma/client";
-import { AxiosResponse } from "axios";
-import { RequestError } from "@/protocols";
 import { CEPAddress } from "@/protocols";
 
 async function getAddressFromCEP(cep: string) {
-  const result = await request.get(`https://viacep.com.br/ws/${cep}/json/`);
+  const result: CEPAddress = (await request.get(`https://viacep.com.br/ws/${cep}/json/`)).data;
   
-  if (!result.data) {
+  if (!result) {
     throw notFoundError();
   }
 
@@ -48,8 +46,7 @@ async function createOrUpdateEnrollmentWithAddress(params: CreateOrUpdateEnrollm
 
   const addressCep: string = address.cep.substring(0, 5) + address.cep.substring(6, 9);
 
-  const cep = await getAddressFromCEP(addressCep) as AxiosResponse<any, any> | RequestError;
-  const resposta: CEPAddress = cep.data;
+  const resposta: CEPAddress = await getAddressFromCEP(addressCep);
 
   if(!resposta.uf) {
     return false;

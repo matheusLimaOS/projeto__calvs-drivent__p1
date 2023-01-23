@@ -2,8 +2,7 @@ import { AuthenticatedRequest } from "@/middlewares";
 import enrollmentsService from "@/services/enrollments-service";
 import { Response } from "express";
 import httpStatus from "http-status";
-import { AxiosResponse } from "axios";
-import { CEPAddress, RequestError } from "@/protocols";
+import { CEPAddress } from "@/protocols";
 
 export async function getEnrollmentByUser(req: AuthenticatedRequest, res: Response) {
   const { userId } = req;
@@ -38,13 +37,12 @@ export async function getAddressFromCEP(req: AuthenticatedRequest, res: Response
   const { cep } = req.query as Record<string, string>;
 
   try {
-    const address = await enrollmentsService.getAddressFromCEP(cep) as AxiosResponse<any, any> | RequestError;
-    const resposta: CEPAddress = address.data;
+    const resposta: CEPAddress = await enrollmentsService.getAddressFromCEP(cep);
     if(!resposta.uf) {
       return res.sendStatus(httpStatus.NOT_FOUND);
     }
     
-    resposta.cidade = address.data.localidade;
+    resposta.cidade = resposta.localidade;
 
     delete resposta.ibge;
     delete resposta.gia;
